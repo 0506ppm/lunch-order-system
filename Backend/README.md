@@ -23,13 +23,22 @@ Backend/
 
 ```
 
-## 安裝與啟動方式
+## ⚙️ 安裝與啟動方式
 
 ### 1️. 建立虛擬環境
+
+#### macOS / Linux
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+```
+
+#### Windows
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
 ### 2️. 安裝依賴套件
@@ -38,23 +47,37 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. 建立 `.env` 檔案
+### 3️. 建立 `.env` 檔案
 
 ```env
 MONGO_URI=mongodb://localhost:27017
 ```
 
-> 或使用 MongoDB Atlas 的連線字串也可。
+> 或使用 MongoDB Atlas 的連線字串也可，例如：
+>
+> ```env
+> MONGO_URI=mongodb+srv://帳號:密碼@cluster.mongodb.net/?retryWrites=true&w=majority
+> ```
 
-### 4. 啟動伺服器
+### 4️. 啟動伺服器
 
 ```bash
 uvicorn main:app --reload
 ```
 
-打開瀏覽器 → [http://localhost:8000/docs](http://localhost:8000/docs) 查看 Swagger UI
+打開瀏覽器 👉 [http://localhost:8000/docs](http://localhost:8000/docs) 查看 Swagger UI 文件
 
----
+### 🧪 測試連線
+
+```bash
+curl http://localhost:8000/health
+```
+
+或直接在瀏覽器打開 `http://localhost:8000/health`，若成功會顯示：
+
+```json
+{ "status": "ok" }
+```
 
 ## 🧱 如何新增一個新的 Entity（以 Task 為例）
 
