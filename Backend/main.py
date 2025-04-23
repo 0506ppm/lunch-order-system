@@ -1,10 +1,6 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from routers import user
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-from db.security import get_current_clerk_user
-# 載入環境變數
-load_dotenv()
 
 app = FastAPI(
     title="Auto Scheduling API",
