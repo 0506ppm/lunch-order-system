@@ -1,15 +1,13 @@
-// index.js
 const express = require('express');
-const cors = require('cors');
-const orderRoutes = require('./routes/order');
-
 const app = express();
-const PORT = 3000;
+const cors = require('cors');
 
-console.log('🚀 ✅ 正在啟動我的後端 index.js')
+const orderRouter = require('./routes/order');
+const searchRouter = require('./routes/search');
+const acceptRouter = require('./routes/accept');
+const completeRouter = require('./routes/complete');
+const cancelRouter = require('./routes/cancel'); // ✅ 加上這行
 
-
-// 中介層
 app.use(cors());
 app.use(express.json());
 
@@ -18,11 +16,12 @@ app.use((req, res, next) => {
   next()
 });
 
-// 路由
-app.use('/api/order', orderRoutes);
+app.use('/api/order', orderRouter);
+app.use('/api/search', searchRouter);
+app.use('/api', acceptRouter);
+app.use('/api', completeRouter);
+app.use('/api', cancelRouter); // ✅ 掛上 cancel route
 
-// 啟動 server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+  console.log('✅ Server running on http://localhost:3000');
 });
-
