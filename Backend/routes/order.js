@@ -72,7 +72,7 @@ router.post('/', async (req, res) => {
   });
 });
 
-// GET /api/order/:id/status
+// GET /api/order/:id/status 查詢訂單狀態
 router.get('/:id/status', (req, res) => {
   const orderId = req.params.id;
   const sql = 'SELECT status FROM Orders WHERE order_id = ?';
@@ -91,15 +91,7 @@ router.get('/:id/status', (req, res) => {
   });
 });
 
-
-// // GET /api/order
-// router.get('/', async (req, res) => {
-//   const sql = 'SELECT * FROM Orders';
-//   db.query(sql, async (err, results) => {
-//     if (err) return res.status(500).json({ success: false, message: '查詢訂單失敗', error: err });
-//     res.json(results);
-//   });
-// });
+// GET /api/order 查詢所有訂單
 
 router.get('/', async (req, res) => {
   try {
