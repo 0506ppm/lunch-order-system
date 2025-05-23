@@ -8,7 +8,7 @@ import { useUser } from '@clerk/vue'
     <p> 歡迎來到 蘭亭池上便當 ! </p>
     <!-- 切換 Light/Dark 模式 -->
     <ColorModeButton />
-
+    
     <!-- 登入按鈕 -->
     <SignedOut>
         <SignInButton mode="modal" afterSignInUrl="/" :appearance="{

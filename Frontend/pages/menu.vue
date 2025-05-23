@@ -54,20 +54,21 @@
 </template>
 
 <script setup lang="ts">
+import type { CartItem } from '~/types/cart'
 // 9 張圖片檔名（放在 public/images/）
 const menuItems = [
-  { name: '菜飯', image: 'rice_with_side_dishes.jpg', price:75 },
-  { name: '炸花枝排飯', image: 'fried_squid_rice.jpg', price:80 },
-  { name: '招牌飯', image: 'sliced_pork_rice.jpg', price:95 },
-  { name: '滷雞腿飯', image: 'stewed_chicken_leg_rice.jpg', price:105 },
-  { name: '控肉飯', image: 'stewed_pork_belly_rice.jpg', price:105 },
-  { name: '檸檬雞排飯', image: 'lemon-flavored_fried_chicken_rice.jpg', price:95 },
-  { name: '炸蝦捲飯', image: 'shrimp_roll_rice.jpg', price:100 },
-  { name: '炸排骨飯', image: 'fried_pork_chop_rice.jpg', price:105 },
-  { name: '蒲燒鯛魚飯', image: 'kabayaki_tilapia_rice.jpg', price:110 },
-  { name: '炸雞腿飯', image: 'fried_chicken_leg_rice.jpg', price:135 },
-  { name: '炸鱈魚飯', image: 'fried_codfish_rice.jpg', price:110 },
-  { name: '瓶裝酸梅湯', image: 'sour_plum_juice.jpg', price:80 }
+  { id:1, name: '菜飯', image: 'rice_with_side_dishes.jpg', price:75 },
+  { id:2, name: '炸花枝排飯', image: 'fried_squid_rice.jpg', price:80 },
+  { id:3, name: '招牌飯', image: 'sliced_pork_rice.jpg', price:95 },
+  { id:4, name: '滷雞腿飯', image: 'stewed_chicken_leg_rice.jpg', price:105 },
+  { id:5, name: '控肉飯', image: 'stewed_pork_belly_rice.jpg', price:105 },
+  { id:6, name: '檸檬雞排飯', image: 'lemon-flavored_fried_chicken_rice.jpg', price:95 },
+  { id:7, name: '炸蝦捲飯', image: 'shrimp_roll_rice.jpg', price:100 },
+  { id:8, name: '炸排骨飯', image: 'fried_pork_chop_rice.jpg', price:105 },
+  { id:9, name: '蒲燒鯛魚飯', image: 'kabayaki_tilapia_rice.jpg', price:110 },
+  { id:10, name: '炸雞腿飯', image: 'fried_chicken_leg_rice.jpg', price:135 },
+  { id:11, name: '炸鱈魚飯', image: 'fried_codfish_rice.jpg', price:110 },
+  { id:12, name: '瓶裝酸梅湯', image: 'sour_plum_juice.jpg', price:80 }
 ]
 
 
@@ -84,7 +85,13 @@ function addToCartAndClose(index: number) {
   const item = menuItems[index]
   const quantity = quantities.value[index]
   if (quantity > 0) {
-    addToCart({ name: item.name, image: item.image, quantity, price: item.price })
+    addToCart({
+      id: item.id,              // **新增**
+      name: item.name,
+      image: item.image,
+      quantity,
+      price: item.price
+    } as CartItem)
   }
   selectedIndex.value = null
 }

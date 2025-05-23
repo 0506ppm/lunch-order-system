@@ -72,4 +72,66 @@ router.post('/', async (req, res) => {
   });
 });
 
+// GET /api/order/:id/status
+router.get('/:id/status', (req, res) => {
+  const orderId = req.params.id;
+  const sql = 'SELECT status FROM Orders WHERE order_id = ?';
+
+  db.query(sql, [orderId], (err, results) => {
+    if (err) return res.status(500).json({ success: false, message: '查詢訂單狀態失敗' });
+
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: '找不到訂單' });
+    }
+
+    return res.json({
+      success: true,
+      status: results[0].status
+    });
+  });
+});
+
+
+// // GET /api/order
+// router.get('/', async (req, res) => {
+//   const sql = 'SELECT * FROM Orders';
+//   db.query(sql, async (err, results) => {
+//     if (err) return res.status(500).json({ success: false, message: '查詢訂單失敗', error: err });
+//     res.json(results);
+//   });
+// });
+
+router.get('/', async (req, res) => {
+  try {
+    // 查詢所有訂單
+    db.query('SELECT * FROM Orders', async (err, orders) => {
+      if (err) return res.status(500).json({ success: false, message: '查詢訂單失敗', error: err });
+      // 查詢所有明細
+      db.query('SELECT * FROM OrderItems', (err2, items) => {
+        if (err2) return res.status(500).json({ success: false, message: '查詢明細失敗', error: err2 });
+        // 查詢所有菜單
+        db.query('SELECT * FROM Menu', (err3, menu) => {
+          if (err3) return res.status(500).json({ success: false, message: '查詢菜單失敗', error: err3 });
+          // 將明細組合到訂單
+          const menuMap = {};
+          menu.forEach(m => { menuMap[m.dish_id] = m; });
+          orders.forEach(order => {
+            order.items = items
+              .filter(i => i.order_id === order.order_id)
+              .map(i => ({
+                dish_name: menuMap[i.menu_id]?.dish_name || '',
+                quantity: i.quantity,
+                unit_price: menuMap[i.menu_id]?.price || 0,
+                subtotal: (menuMap[i.menu_id]?.price || 0) * i.quantity
+              }));
+          });
+          res.json(orders);
+        });
+      });
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: '查詢訂單失敗', error: err });
+  }
+});
+
 module.exports = router;

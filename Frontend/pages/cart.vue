@@ -1,5 +1,7 @@
 <template>
   <TheHeader />
+  <UNotifications />
+
   <div class="p-8">
     <div class="text-right">
       <button
@@ -60,54 +62,117 @@
       </div>
     </div>
   </div>
+
+  <!-- 等待訂單確認 -->
+  <UModal v-if="submitting" v-model:open="submitting">
+    <template #body>
+      <div class="p-8 text-center text-2xl font-bold text-black dark:text-white mb-4">
+        等待店家確認中...
+      </div>
+    </template>
+    <template #footer>
+      <div class="w-full flex justify-center items-center">
+        <UButton loading size="xl" color="primary">訂單處理中</UButton>
+      </div>
+    </template>
+  </UModal>
 </template>
 
 <script setup lang="ts">
 import { useUser } from '@clerk/vue'
-const { cart, clearCart } = useCart()
-const { user, isLoaded } = useUser()
+import { onBeforeUnmount } from 'vue'
 
+const { cart, clearCart } = useCart()
+const { user } = useUser()
+const apiBase = useRuntimeConfig().public.apiBase
 const phone = ref('')
+const toast = useToast()
+
+const submitting = ref(false)
+const orderStatusMessage = ref('')
+const orderId = ref<string | null>(null)
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+interface OrderStatusResponse {
+  success: boolean
+  status: '已建立' | '已接受' | '已取消'
+}
 
 // 計算總金額
 const total = computed(() =>
   cart.value.reduce((sum, item) => sum + item.price * item.quantity, 0)
 )
 
+// 
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer)
+
+  pollTimer = setInterval(async () => {
+    if (!orderId.value) return
+
+    try {
+      const res: OrderStatusResponse = await $fetch(`${apiBase}/api/order/${orderId.value}/status`)
+      if (res.status === '已接受') {
+        orderStatusMessage.value = '✅ 訂單送出成功！'
+        toast.add({ title: '✅ 訂單送出成功！', color: 'success' })
+        clearInterval(pollTimer!)
+        pollTimer = null
+        clearCart()
+        phone.value = ''
+        submitting.value = false
+      } else if (res.status === '已取消') {
+        orderStatusMessage.value = '❌ 目前訂單爆單中，請稍後再試'
+        toast.add({ title: '❌目前無法下單！，請稍後再試', color: 'error' })
+        clearInterval(pollTimer!)
+        pollTimer = null
+        submitting.value = false
+      }
+    } catch (err) {
+      console.error('❌ 查詢訂單狀態失敗:', err)
+      toast.add({ title: '❌ 目前無法下單，請稍後再試', color: 'error' })
+    }
+  }, 3000)
+}
+
+// ✅ 當離開頁面時清除 polling
+onBeforeUnmount(() => {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+})
+
 // 結帳邏輯
 async function checkout() {
-  if (!user.value) {
-    alert('請先登入！')
-    return
-  }
+  if (!user.value)  return alert('請先登入！')
+  if (!phone.value.trim()) return alert('請輸入聯絡電話')
 
-  if (!phone.value.trim()) {
-    alert('請輸入聯絡電話')
-    return
-  }
+  submitting.value = true
+  orderStatusMessage.value = '🕐 訂單建立中...'
 
   const payload = {
     name: user.value.fullName,
     phone: phone.value,
-    orders: cart.value.map((item) => ({
-      item: item.name,
-      quantity: item.quantity
+    orders: cart.value.map(i => ({
+      item: i.name,
+      quantity: i.quantity,
     }))
   }
 
   try{
-    const res = await $fetch('http://localhost:3000/api/order', {
+    const res = await $fetch<{ order_id: string }>(`${apiBase}/api/order`, {
       method: 'POST',
       body: payload
     })
-    console.log('✅ API 回應:', res)
-    alert('✅ 訂單送出成功')
-
-    clearCart()
-    phone.value = ''
+    orderId.value = res.order_id
+    submitting.value = true
+    orderStatusMessage.value = '⌛ 等待店家確認中...'
+    startPolling()
   } catch (error) {
+    // submitting.value = false
     console.error('❌ 訂單送出失敗:', error)
-    alert('❌ 訂單送出失敗，請稍後再試')
-  }
+    toast.add({ title: '❌目前無法下單！，請稍後再試', color: 'error' })
+    orderStatusMessage.value = '❌ 訂單送出失敗，請稍後再試'
+  } 
 }
 </script>

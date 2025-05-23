@@ -1,11 +1,12 @@
 // composables/useCart.ts
-export const useCart = () => {
-  const cart = useState('cart', () =>
-    [] as { name: string, image: string, quantity: number, price: number }[]
-  )
+import type { CartItem } from '~/types/cart'
 
-  function addToCart(item: { name: string, image: string, quantity: number, price: number }) {
-    const existing = cart.value.find(i => i.name === item.name)
+
+export const useCart = () => {
+  const cart = useState<CartItem[]>('cart', () => []) 
+
+  function addToCart(item: CartItem) {
+    const existing = cart.value.find((i) => i.id === item.id)
     if (existing) {
       existing.quantity += item.quantity
     } else {
